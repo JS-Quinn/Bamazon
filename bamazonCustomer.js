@@ -28,20 +28,13 @@ function start() {
         .prompt([
             {
                 name: "itemID",
-                type: "rawlist",
-                choices: function() {
-                    var choiceArray = [];
-                    for (var i = 0; i < results.length; i++) {
-                      choiceArray.push(results[i].product_name);
-                    }
-                    return choiceArray;
-                },
-                message: "What item would you would like to buy?",
+                type: "input",
+                message: "What is the ID of the item would you would like to buy?"
             },
             {
                 name: "quantity",
                 type: "input",
-                message: "How many units would you like to buy?",
+                message: "How many units would you like to buy?"
             }
         ])
         .then(function(answer) {
@@ -50,22 +43,30 @@ function start() {
                 for (var i = 0; i < results.length; i++) {
                     if (results[i].item_id == answer.itemID) {
                         if (results[i].stock_quantity >= answer.quantity) {
-                            results[i].stock_quantity - answer.quantity;
+                            var query = connection.query(
+                                "UPDATE products SET ? WHERE ?",
+                                [
+                                  {
+                                    stock_quantity: results[i].stock_quantity - answer.quantity
+                                  },
+                                  {
+                                    item_id: answer.itemID
+                                  }
+                                ]
+                            )
+                            console.log("You purchased " + answer.quantity + " units.");
+                            console.log("Total Price: $" + (answer.quantity * results[i].price));
+                            console.log("Connection terminated. Have fun with that " + results[i].product_name + "...");
+                            connection.end();
                         }
                         else {
-                            console.log("Not enough stock!");
+                            console.log("Insufficient quantity!");
+                            console.log("Connection terminated");
+                            connection.end();
                         }
                     }
                 }
-            
             });
-        // based on their answer, either call the bid or the post functions
-        if (answer.productID === "POST") {
-            
-        }
-        else {
-            
-        }
         });
     });
 }
